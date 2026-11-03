@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Donation Campaign | Computer Lab for Village Children</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+      background: #0a0f1e;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    /* 3D canvas container */
+    #canvas-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    /* All content sits above canvas */
+    .content-wrapper {
+      position: relative;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .content-wrapper a,
+    .content-wrapper button,
+    .content-wrapper .pointer,
+    .content-wrapper .clickable {
+      pointer-events: auto;
+    }
+
+    /* ===== Overlay gradient for readability ===== */
+    .gradient-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 30% 40%, rgba(10, 15, 30, 0.55) 0%, rgba(10, 15, 30, 0.85) 100%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* ===== Navbar ===== */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 0;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 20;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 0 20px rgba(243, 156, 18, 0.6);
+    }
+
+    .logo i {
+      color: #f39c12;
+      margin-right: 8px;
+      filter: drop-shadow(0 0 8px rgba(243, 156, 18, 0.8));
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      margin-left: 30px;
+      font-weight: 500;
+      color: #e0e7ff;
+      transition: all 0.2s;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+    }
+
+    .nav-links a:hover {
+      color: #f9c74f;
+    }
+
+    /* ===== Hero ===== */
+    .hero {
+      padding: 40px 0 60px;
+      min-height: 70vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      z-index: 15;
+    }
+
+    .hero-content {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .hero-text {
+      flex: 1 1 340px;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(243, 156, 18, 0.18);
+      padding: 8px 22px;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(243, 156, 18, 0.4);
+      margin-bottom: 18px;
+      color: #ffe28a;
+      text-shadow: 0 0 12px rgba(243,156,18,0.3);
+    }
+
+    .hero-text h1 {
+      font-size: 3.2rem;
+      line-height: 1.15;
+      margin-bottom: 20px;
+      font-weight: 800;
+      text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
+      background: linear-gradient(to right, #fff, #ffe28a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .slogan-big {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin: 15px 0 25px;
+      color: #ffe28a;
+      text-shadow: 0 0 30px rgba(243, 156, 18, 0.6);
+      border-left: 5px solid #f39c12;
+      padding-left: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-text p {
+      font-size: 1.15rem;
+      margin-bottom: 30px;
+      color: #ccd6f6;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+      max-width: 520px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 15px 38px;
+      border-radius: 60px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s;
+      border: none;
+      cursor: pointer;
+      font-size: 1.05rem;
+    }
+
+    .btn-whatsapp {
+      background: #25D366;
+      color: white;
+      box-shadow: 0 8px 32px rgba(37, 211, 102, 0.45), 0 0 40px rgba(37, 211, 102, 0.2);
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-whatsapp:hover {
+      background: #1ebe5a;
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 14px 45px rgba(37, 211, 102, 0.6);
+    }
+
+    .btn-outline-light {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.4);
+      color: white;
+      margin-left: 15px;
+      backdrop-filter: blur(6px);
+    }
+
+    .btn-outline-light:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: #f39c12;
+      color: #ffe28a;
+    }
+
+    /* ===== Section headings ===== */
+    .section-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 15px;
+      text-shadow: 0 0 30px rgba(0,0,0,0.7);
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: #b0c4de;
+      margin-bottom: 50px;
+      font-size: 1.15rem;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    }
+
+    /* ===== Gallery ===== */
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 22px;
+      margin-bottom: 60px;
+    }
+
+    .gallery-item {
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 30px rgba(243, 156, 18, 0.08);
+      transition: transform 0.3s, box-shadow 0.3s;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.12);
+      aspect-ratio: 1 / 1;
+      position: relative;
+    }
+
+    .gallery-item:hover {
+      transform: scale(1.03) translateY(-4px);
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.6), 0 0 50px rgba(243, 156, 18, 0.2);
+      border-color: rgba(243, 156, 18, 0.4);
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s;
+    }
+
+    .gallery-item:hover img {
+      transform: scale(1.08);
+    }
+
+    .gallery-item .label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+      color: white;
+      padding: 30px 12px 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-align: center;
+      text-shadow: 0 1px 4px black;
+    }
+
+    /* ===== DONATION LIST SECTION (NEW) ===== */
+    .donation-list-wrapper {
+      background: rgba(20, 30, 55, 0.55);
+      backdrop-filter: blur(16px);
+      border-radius: 40px;
+      padding: 45px 40px;
+      margin: 60px 0;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 25px 55px rgba(0,0,0,0.5);
+    }
+
+    .donation-list-wrapper .section-title {
+      margin-bottom: 8px;
+    }
+
+    .donation-list-wrapper .section-subtitle {
+      margin-bottom: 35px;
+    }
+
+    .donation-categories {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+    }
+
+    .donation-category {
+      background: rgba(255,255,255,0.04);
+      border-radius: 28px;
+      padding: 28px 28px 22px;
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .donation-category:hover {
+      border-color: rgba(243, 156, 18, 0.4);
+      box-shadow: 0 0 40px rgba(243, 156, 18, 0.08);
+    }
+
+    .donation-category h3 {
+      font-size: 1.7rem;
+      margin-bottom: 6px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .donation-category h3 i {
+      color: #f39c12;
+      font-size: 1.6rem;
+    }
+
+    .category-note {
+      font-size: 0.9rem;
+      color: #f39c12;
+      margin-bottom: 18px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    .donation-items {
+      list-style: none;
+      margin-bottom: 20px;
+    }
+
+    .donation-items li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      color: #ccd6f6;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+
+    .donation-items li:last-child {
+      border-bottom: none;
+    }
+
+    .donation-items li i {
+      color: #25D366;
+      font-size: 1.1rem;
+      margin-top: 3px;
+      flex-shrink: 0;
+    }
+
+    .donation-items li span strong {
+      color: #fff;
+    }
+
+    .donation-items li span small {
+      color: #8a9bb8;
+      font-size: 0.85rem;
+      display: block;
+      margin-top: 2px;
+    }
+
+    .btn-donate-list {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: #25D366;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 50px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.25s;
+      font-size: 1.05rem;
+      box-shadow: 0 6px 20px rgba(37, 211, 102, 0.3);
+      margin-top: 10px;
+    }
+
+    .btn-donate-list:hover {
+      background: #1ebe5a;
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(37, 211, 102, 0.5);
+    }
+
+    /* ===== Money Donation Highlight Card ===== */
+    .money-card {
+      background: linear-gradient(135deg, rgba(243,156,18,0.15), rgba(230,126,34,0.08));
+      border: 1px solid rgba(243, 156, 18, 0.3);
+      border-radius: 28px;
+      padding: 32px 30px;
+      margin-top: 35px;
+      text-align: center;
+    }
+
+    .money-card h3 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      color: #ffe28a;
+    }
+
+    .money-card p {
+      color: #ccd6f6;
+      margin-bottom: 22px;
+      font-size: 1.05rem;
+    }
+
+    .money-amounts {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+
+    .money-amounts span {
+      background: rgba(243, 156, 18, 0.15);
+      padding: 8px 22px;
+      border-radius: 40px;
+      border: 1px solid rgba(243, 156, 18, 0.3);
+      color: #ffe28a;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    /* ===== Split section ===== */
+    .split-section {
+      display: flex;
+      gap: 40px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 70px 0;
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(16px);
+      border-radius: 40px;
+      padding: 45px 50px;
+      box-shadow: 0 25px 55px rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .split-text {
+      flex: 1 1 300px;
+    }
+
+    .split-text h2 {
+      font-size: 2rem;
+      color: #fff;
+      margin-bottom: 20px;
+      background: linear-gradient(to right, #fff, #f9c74f);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .split-text p {
+      margin-bottom: 18px;
+      color: #b8c9e0;
+      font-size: 1rem;
+    }
+
+    .split-image {
+      flex: 1 1 280px;
+      text-align: center;
+    }
+
+    .split-image img {
+      max-width: 100%;
+      border-radius: 28px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 40px rgba(243,156,18,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    /* ===== Stats ===== */
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 20px;
+      background: rgba(20, 30, 55, 0.5);
+      backdrop-filter: blur(14px);
+      color: white;
+      padding: 55px 20px;
+      border-radius: 40px;
+      margin: 70px 0;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 20px 45px rgba(0,0,0,0.4);
+    }
+
+    .stat-item h3 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: #f9c74f;
+      text-shadow: 0 0 30px rgba(249, 199, 79, 0.4);
+    }
+
+    .stat-item p {
+      font-size: 1rem;
+      opacity: 0.9;
+      color: #b8c9e0;
+    }
+
+    /* ===== Footer ===== */
+    .footer {
+      text-align: center;
+      padding: 40px 0 35px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      color: #8a9bb8;
+      font-size: 0.95rem;
+      background: rgba(10, 15, 30, 0.5);
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 15;
+    }
+
+    .footer i {
+      color: #f39c12;
+      margin: 0 4px;
+    }
+
+    .footer .wa-number {
+      font-weight: 700;
+      color: #f9c74f;
+      font-size: 1.3rem;
+      text-shadow: 0 0 20px rgba(243,156,18,0.3);
+    }
+
+    /* ===== Floating WhatsApp ===== */
+    .whatsapp-float {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #25D366;
+      color: white;
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.3rem;
+      box-shadow: 0 10px 35px rgba(37, 211, 102, 0.5), 0 0 40px rgba(37, 211, 102, 0.2);
+      z-index: 999;
+      transition: all 0.3s;
+      text-decoration: none;
+      animation: pulse-wa 2s infinite;
+    }
+
+    .whatsapp-float:hover {
+      background: #1ebe5a;
+      transform: scale(1.12);
+      color: white;
+    }
+
+    @keyframes pulse-wa {
+      0% { box-shadow: 0 10px 35px rgba(37, 211, 102, 0.5), 0 0 0 0 rgba(37, 211, 102, 0.6); }
+      70% { box-shadow: 0 10px 35px rgba(37, 211, 102, 0.5), 0 0 0 22px rgba(37, 211, 102, 0); }
+      100% { box-shadow: 0 10px 35px rgba(37, 211, 102, 0.5), 0 0 0 0 rgba(37, 211, 102, 0); }
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 700px) {
+      .hero-text h1 {
+        font-size: 2.2rem;
+      }
+      .slogan-big {
+        font-size: 1.2rem;
+      }
+      .btn-outline-light {
+        margin-left: 0;
+        margin-top: 12px;
+      }
+      .hero-content {
+        gap: 25px;
+      }
+      .navbar {
+        flex-direction: column;
+        gap: 10px;
+      }
+      .nav-links a {
+        margin: 0 12px;
+      }
+      .split-section {
+        padding: 30px 22px;
+      }
+      .whatsapp-float {
+        width: 56px;
+        height: 56px;
+        font-size: 2rem;
+        bottom: 20px;
+        right: 20px;
+      }
+      .donation-list-wrapper {
+        padding: 30px 20px;
+      }
+      .donation-category {
+        padding: 22px 18px 18px;
+      }
+      .donation-category h3 {
+        font-size: 1.4rem;
+      }
+    }
+
+    .three-hint {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      color: rgba(255,255,255,0.2);
+      font-size: 0.7rem;
+      z-index: 5;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 3D Canvas -->
+  <div id="canvas-container"></div>
+  <div class="gradient-overlay"></div>
+  <div class="three-hint">3D scene • move mouse</div>
+
+  <!-- Content -->
+  <div class="content-wrapper">
+
+    <!-- Navbar -->
+    <div class="container">
+      <div class="navbar">
+        <div class="logo">
+          <i class="fas fa-laptop"></i> DigitalDidi
+        </div>
+        <div class="nav-links">
+          <a href="#donate">Donate</a>
+          <a href="#gallery">Children</a>
+          <a href="#about">About</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <div class="hero-text">
+            <span class="hero-badge"><i class="fas fa-heart"></i> Every child deserves a digital future</span>
+            <h1>Give a computer.<br>Build a dream.</h1>
+            <div class="slogan-big">“Your small help, their big future.”</div>
+            <p>Help village students learn, code, and create. We collect working laptops, desktops, computer parts, and funds to build a computer lab for underprivileged children.</p>
+            <div>
+              <a href="https://wa.me/919321897924?text=Hello%2C%20I%20want%20to%20donate%20for%20the%20village%20children%20computer%20lab.%20Please%20guide%20me." target="_blank" class="btn btn-whatsapp">
+                <i class="fab fa-whatsapp"></i> Donate via WhatsApp
+              </a>
+              <a href="#donation-list" class="btn btn-outline-light"><i class="fas fa-list"></i> See what we accept</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+
+      <!-- Gallery -->
+      <h2 class="section-title" id="gallery">Faces of the future</h2>
+      <p class="section-subtitle">These children from rural villages are eager to learn — but they lack access to computers. Your donation changes that.</p>
+
+      <div class="gallery">
+        <div class="gallery-item">
+          <img src="https://images.pexels.com/photos/8613085/pexels-photo-8613085.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop" alt="Village boy smiling">
+          <div class="label">Ravi, 9 — wants to learn coding</div>
+        </div>
+        <div class="gallery-item">
+          <img src="https://images.pexels.com/photos/8422201/pexels-photo-8422201.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop" alt="Girl from village">
+          <div class="label">Meena, 11 — dreams of becoming an engineer</div>
+        </div>
+        <div class="gallery-item">
+          <img src="https://images.pexels.com/photos/8391820/pexels-photo-8391820.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop" alt="Child in rural area">
+          <div class="label">Suresh, 10 — curious about computers</div>
+        </div>
+        <div class="gallery-item">
+          <img src="https://images.pexels.com/photos/8199621/pexels-photo-8199621.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop" alt="Poor girl child">
+          <div class="label">Priya, 8 — loves drawing on screen</div>
+        </div>
+        <div class="gallery-item">
+          <img src="https://images.pexels.com/photos/7245553/pexels-photo-7245553.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&fit=crop" alt="Village school child">
+          <div class="label">Arjun, 12 — future programmer</div>
+        </div>
+      </div>
+
+      <!-- ===== DONATION LIST SECTION ===== -->
+      <div class="donation-list-wrapper" id="donation-list">
+        <h2 class="section-title">What you can donate</h2>
+        <p class="section-subtitle">We accept <strong style="color:#f9c74f;">only working</strong> items. Every working part helps us build a functional computer lab.</p>
+
+        <div class="donation-categories">
+
+          <!-- LAPTOP / PC CATEGORY -->
+          <div class="donation-category">
+            <h3><i class="fas fa-laptop"></i> Laptops & PCs</h3>
+            <p class="category-note">Must be in working condition</p>
+            <ul class="donation-items">
+              <li><i class="fas fa-check-circle"></i> <span><strong>Working laptop</strong> <small>Windows 10/11 or Mac 2015+, with charger</small></span></li>
+              <li><i class="fas fa-check-circle"></i> <span><strong>Working desktop PC</strong> <small>Complete tower or all-in-one</small></span></li>
+              <li><i class="fas fa-check-circle"></i> <span><strong>Working computer monitor</strong> <small>LCD/LED, 15" or larger</small></span></li>
+              <li><i class="fas fa-check-circle"></i> <span><strong>Working keyboard & mouse</strong> <small>USB or wireless</small></span></li>
+            </ul>
+            <a href="https://wa.me/919321897924?text=Hi%2C%20I%20want%20to%20donate%20a%20working%20laptop%2FPC%20for%20the%20village%20students.%20Please%20arrange%20pickup." target="_blank" class="btn-donate-list">
+              <i class="fab fa-whatsapp"></i> Donate laptop/PC
+            </a>
+          </div>
+
+          <!-- COMPUTER PARTS CATEGORY -->
+          <div class="donation-category">
+            <h3><i class="fas fa-microchip"></i> Working Computer Parts</h3>
+            <p class="category-note">Only tested, functional components</p>
+            <ul class="donation-items">
+              <li><i class="fas fa-check-circle"></i> <span><strong>Hard drives / SSDs</strong> <small>120GB or larger, working</small></span></li>
+              <li><i class="fas fa-check-circle"></i> <span><strong>RAM modules</strong> <small>DDR3 / DDR4, any size</small></span></li>
+              <li><i class="fas fa-check-circle"></i> <span><strong>Power supplies (SMPS)</strong> <small>Working, any wattage</small></span></li>
+              <li><i class="fas fa-check-circle"></i> <span><strong>Graphics cards</strong> <small>Working, any model</small></span></li>
+              <li><i class="fas fa-check-circle"></i> <span><strong>Motherboards</strong> <small>Working, with CPU socket</small></span></li>
+              <li><i class="fas fa-check-circle"></i> <span><strong>USB drives / pen drives</strong> <small>8GB or larger</small></span></li>
+            </ul>
+            <a href="https://wa.me/919321897924?text=Hi%2C%20I%20want%20to%20donate%20working%20computer%20parts%20for%20the%20village%20computer%20lab.%20Please%20guide%20me." target="_blank" class="btn-donate-list">
+              <i class="fab fa-whatsapp"></i> Donate computer parts
+            </a>
+          </div>
+
+          <!-- OTHER ACCESSORIES -->
+          <div class="donation-category">
+            <h3><i class="fas fa-plug"></i> Accessories & More</h3>
+            <p class="category-note">Useful working items</p>
+            <ul class="donation-items">
+              <li><i class="fas fa-check-circle"></i> <span><strong>Working UPS / inverter</strong> <small>For power backup</small></span></li>
+              <li><i class="fas fa-check-circle"></i> <span><strong>Working printer / scanner</strong> <small>Any brand, with cables</small></span></li>
+              <li><i class="fas fa-check-circle"></i> <span><strong>Networking cables & routers</strong> <small>Working condition</small></span></li>
+              <li><i class="fas fa-check-circle"></i> <span><strong>Working webcams & headphones</strong> <small>For online learning</small></span></li>
+              <li><i class="fas fa-check-circle"></i> <span><strong>Computer tables & chairs</strong> <small>Good condition</small></span></li>
+            </ul>
+            <a href="https://wa.me/919321897924?text=Hi%2C%20I%20want%20to%20donate%20computer%20accessories%20for%20the%20village%20computer%20lab.%20Please%20guide%20me." target="_blank" class="btn-donate-list">
+              <i class="fab fa-whatsapp"></i> Donate accessories
+            </a>
+          </div>
+
+        </div>
+
+        <!-- MONEY DONATION -->
+        <div class="money-card">
+          <h3><i class="fas fa-hand-holding-heart" style="color:#f39c12;"></i> Donate Money — Any Amount</h3>
+          <p>No fixed amount. Give whatever you can afford. Every rupee helps with electricity, internet, maintenance, and building the lab.</p>
+          <div class="money-amounts">
+            <span>₹100</span>
+            <span>₹500</span>
+            <span>₹1,000</span>
+            <span>₹2,000</span>
+            <span>₹5,000</span>
+            <span>Any amount</span>
+          </div>
+          <a href="https://wa.me/919321897924?text=Hi%2C%20I%20want%20to%20donate%20money%20for%20the%20village%20children%20computer%20lab.%20Please%20tell%20me%20how%20to%20proceed." target="_blank" class="btn-donate-list" style="max-width: 400px; margin: 0 auto;">
+            <i class="fab fa-whatsapp"></i> Donate money via WhatsApp
+          </a>
+        </div>
+      </div>
+
+      <!-- Split section -->
+      <div class="split-section" id="about">
+        <div class="split-text">
+          <h2>From village to digital world</h2>
+          <p>Over 70% of children in our partner villages have never used a computer. With your help, we can change that. We take <strong>only working laptops, PCs, and computer parts</strong> — we refurbish them and create a shared lab for 200+ students.</p>
+          <p><i class="fas fa-check-circle" style="color:#f39c12;"></i> 100% of your device donation goes to the lab.<br>
+          <i class="fas fa-check-circle" style="color:#f39c12;"></i> All financial donations are audited and transparent.<br>
+          <i class="fas fa-check-circle" style="color:#f39c12;"></i> We also build safe, furnished rooms for the lab.</p>
+          <p style="margin-top: 25px; color: #ffe28a;"><strong>“I want to make my own video game one day.”</strong> — Ravi, 9</p>
+        </div>
+        <div class="split-image">
+          <img src="https://images.pexels.com/photos/1181607/pexels-photo-1181607.jpeg?auto=compress&cs=tinysrgb&w=600&h=500&fit=crop" alt="Children using computer">
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat-item">
+          <h3>200+</h3>
+          <p>Students waiting</p>
+        </div>
+        <div class="stat-item">
+          <h3>5</h3>
+          <p>Villages covered</p>
+        </div>
+        <div class="stat-item">
+          <h3>18</h3>
+          <p>Laptops donated (goal 50)</p>
+        </div>
+        <div class="stat-item">
+          <h3>₹2.4L</h3>
+          <p>Raised for lab building</p>
+        </div>
+      </div>
+
+      <!-- Final CTA -->
+      <div style="text-align: center; margin: 60px 0 40px;">
+        <h2 style="font-size: 2.2rem; color: #fff; margin-bottom: 15px; text-shadow: 0 0 30px rgba(0,0,0,0.7);">Your old laptop can change a life</h2>
+        <p style="max-width: 600px; margin: 0 auto 25px; color: #b8c9e0;">We accept working laptops, PCs, parts (even 5 years old) and any amount of money for the lab. Every contribution matters.</p>
+        <a href="https://wa.me/919321897924?text=Hello%2C%20I%20want%20to%20donate%20for%20the%20village%20children%20computer%20lab.%20Please%20guide%20me." target="_blank" class="btn btn-whatsapp" style="padding: 16px 55px; font-size: 1.2rem;">
+          <i class="fab fa-whatsapp"></i> Donate on WhatsApp
+        </a>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="container">
+        <p><i class="fas fa-laptop"></i> DigitalDidi — Empowering village children through technology</p>
+        <p style="margin-top: 10px;">📞 <span class="wa-number">+91 9321897924</span> (WhatsApp only)</p>
+        <p style="margin-top: 15px; font-size: 0.85rem;">This is a demonstration page for a donation campaign. Images are from Pexels/Unsplash, used for illustration.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Floating WhatsApp -->
+  <a href="https://wa.me/919321897924?text=Hi%2C%20I%20want%20to%20donate%20for%20the%20village%20children%20computer%20lab.%20Please%20guide%20me." class="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+
+  <!-- Three.js from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <script>
+    // ===== 3D SCENE SETUP =====
+    (function init3D() {
+      const container = document.getElementById('canvas-container');
+
+      const scene = new THREE.Scene();
+      scene.background = null;
+
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 0, 18);
+
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+
+      // Lights
+      const ambientLight = new THREE.AmbientLight(0x404060);
+      scene.add(ambientLight);
+
+      const pointLight1 = new THREE.PointLight(0xf39c12, 1.2, 40);
+      pointLight1.position.set(5, 5, 10);
+      scene.add(pointLight1);
+
+      const pointLight2 = new THREE.PointLight(0x4a90e2, 1, 40);
+      pointLight2.position.set(-6, -3, 8);
+      scene.add(pointLight2);
+
+      const pointLight3 = new THREE.PointLight(0xff6b6b, 0.6, 30);
+      pointLight3.position.set(0, 8, 5);
+      scene.add(pointLight3);
+
+      // Laptop object
+      function createLaptop() {
+        const group = new THREE.Group();
+        const baseGeo = new THREE.BoxGeometry(2.8, 0.15, 2);
+        const baseMat = new THREE.MeshStandardMaterial({ color: 0x2c3e50, emissive: 0x1a2533, roughness: 0.4, metalness: 0.7 });
+        const base = new THREE.Mesh(baseGeo, baseMat);
+        base.position.y = -0.5;
+        group.add(base);
+
+        const screenGeo = new THREE.BoxGeometry(2.8, 0.1, 2);
+        const screenMat = new THREE.MeshStandardMaterial({ color: 0x3a5a7a, emissive: 0x1e3c72, roughness: 0.3, metalness: 0.8 });
+        const screen = new THREE.Mesh(screenGeo, screenMat);
+        screen.position.set(0, 0.9, -0.95);
+        screen.rotation.x = 0.25;
+        group.add(screen);
+
+        const displayGeo = new THREE.PlaneGeometry(2.4, 1.6);
+        const displayMat = new THREE.MeshStandardMaterial({ color: 0xf9c74f, emissive: 0xf39c12, emissiveIntensity: 0.7, side: THREE.DoubleSide });
+        const display = new THREE.Mesh(displayGeo, displayMat);
+        display.position.set(0, 0.85, -0.9);
+        display.rotation.x = 0.25;
+        group.add(display);
+
+        return group;
+      }
+
+      // Heart shape
+      function createHeart() {
+        const shape = new THREE.Shape();
+        const x = 0, y = 0;
+        shape.moveTo(x + 0.5, y + 0.5);
+        shape.bezierCurveTo(x + 0.5, y + 0.5, x + 0.4, y, x, y);
+        shape.bezierCurveTo(x - 0.6, y, x - 0.6, y + 0.7, x - 0.6, y + 0.7);
+        shape.bezierCurveTo(x - 0.6, y + 1.1, x - 0.3, y + 1.5, x + 0.5, y + 1.9);
+        shape.bezierCurveTo(x + 1.2, y + 1.5, x + 1.6, y + 1.1, x + 1.6, y + 0.7);
+        shape.bezierCurveTo(x + 1.6, y + 0.7, x + 1.6, y, x + 1.0, y);
+        shape.bezierCurveTo(x + 0.7, y, x + 0.5, y + 0.5, x + 0.5, y + 0.5);
+
+        const extrudeSettings = { depth: 0.3, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 0.1, bevelThickness: 0.1 };
+        const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+        const material = new THREE.MeshStandardMaterial({ color: 0xff4d6d, emissive: 0xcc2040, emissiveIntensity: 0.5, roughness: 0.3, metalness: 0.2 });
+        const heart = new THREE.Mesh(geometry, material);
+        heart.scale.set(0.6, 0.6, 0.6);
+        heart.rotation.z = Math.PI;
+        heart.position.set(0, 0, 0);
+        return heart;
+      }
+
+      // Book
+      function createBook() {
+        const group = new THREE.Group();
+        const coverGeo = new THREE.BoxGeometry(1.6, 0.15, 2.2);
+        const coverMat = new THREE.MeshStandardMaterial({ color: 0x8e44ad, emissive: 0x4a1e6e, roughness: 0.5, metalness: 0.3 });
+        const cover = new THREE.Mesh(coverGeo, coverMat);
+        cover.position.y = -0.1;
+        group.add(cover);
+
+        const pagesGeo = new THREE.BoxGeometry(1.5, 0.12, 2.1);
+        const pagesMat = new THREE.MeshStandardMaterial({ color: 0xfff5e6, emissive: 0x554433, roughness: 0.8 });
+        const pages = new THREE.Mesh(pagesGeo, pagesMat);
+        pages.position.y = 0.03;
+        group.add(pages);
+
+        return group;
+      }
+
+      // Glow sphere
+      function createGlowSphere(color, size) {
+        const geo = new THREE.SphereGeometry(size, 16, 16);
+        const mat = new THREE.MeshStandardMaterial({ color: color, emissive: color, emissiveIntensity: 0.8, roughness: 0.2 });
+        return new THREE.Mesh(geo, mat);
+      }
+
+      // Add objects
+      const laptop = createLaptop();
+      laptop.position.set(-4, 1.5, -2);
+      laptop.rotation.y = 0.6;
+      laptop.rotation.x = 0.1;
+      scene.add(laptop);
+
+      const heart = createHeart();
+      heart.position.set(5, 2.2, -1);
+      heart.rotation.y = -0.4;
+      scene.add(heart);
+
+      const book = createBook();
+      book.position.set(3, -2, -3);
+      book.rotation.y = -0.8;
+      book.rotation.x = 0.2;
+      scene.add(book);
+
+      const book2 = createBook();
+      book2.position.set(-5, -2.5, -1);
+      book2.rotation.y = 1.1;
+      book2.rotation.x = -0.1;
+      book2.scale.set(0.7, 0.7, 0.7);
+      scene.add(book2);
+
+      // Particles
+      const particles = [];
+      const particleColors = [0xf39c12, 0x4a90e2, 0xff6b6b, 0xf9c74f, 0x6c5ce7];
+      for (let i = 0; i < 35; i++) {
+        const size = 0.06 + Math.random() * 0.15;
+        const color = particleColors[Math.floor(Math.random() * particleColors.length)];
+        const sphere = createGlowSphere(color, size);
+        sphere.position.set(
+          (Math.random() - 0.5) * 26,
+          (Math.random() - 0.5) * 16,
+          (Math.random() - 0.5) * 18 - 4
+        );
+        sphere.userData = {
+          speed: 0.002 + Math.random() * 0.006,
+          offset: Math.random() * Math.PI * 2,
+          amplitude: 0.3 + Math.random() * 0.8,
+          baseY: sphere.position.y,
+          baseX: sphere.position.x,
+          baseZ: sphere.position.z,
+        };
+        scene.add(sphere);
+        particles.push(sphere);
+      }
+
+      // Rings
+      const ringGeo = new THREE.TorusGeometry(1.2, 0.06, 16, 40);
+      const ringMat = new THREE.MeshStandardMaterial({ color: 0xf39c12, emissive: 0xf39c12, emissiveIntensity: 0.5, transparent: true, opacity: 0.35 });
+      const ring1 = new THREE.Mesh(ringGeo, ringMat);
+      ring1.position.set(-1, 3, -5);
+      ring1.rotation.x = 0.8;
+      ring1.rotation.y = 0.3;
+      scene.add(ring1);
+
+      const ring2 = new THREE.Mesh(ringGeo, ringMat.clone());
+      ring2.material.color.setHex(0x4a90e2);
+      ring2.material.emissive.setHex(0x4a90e2);
+      ring2.position.set(6, -1, -4);
+      ring2.scale.set(0.8, 0.8, 0.8);
+      ring2.rotation.x = 1.2;
+      ring2.rotation.z = 0.5;
+      scene.add(ring2);
+
+      // Mouse parallax
+      let mouseX = 0, mouseY = 0;
+      document.addEventListener('mousemove', (e) => {
+        mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+        mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+      });
+
+      let time = 0;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        time += 0.01;
+
+        camera.position.x += (mouseX * 3 - camera.position.x) * 0.03;
+        camera.position.y += (mouseY * 2 - camera.position.y) * 0.03;
+        camera.lookAt(0, 0, -2);
+
+        laptop.position.y = 1.5 + Math.sin(time * 0.7) * 0.4;
+        laptop.rotation.y += 0.004;
+        laptop.rotation.x = 0.1 + Math.sin(time * 0.5) * 0.05;
+
+        heart.position.y = 2.2 + Math.sin(time * 0.9 + 1) * 0.5;
+        heart.rotation.y += 0.006;
+        heart.rotation.z = Math.sin(time * 0.6) * 0.1;
+
+        book.position.y = -2 + Math.sin(time * 0.8 + 2) * 0.35;
+        book.rotation.y += 0.003;
+
+        book2.position.y = -2.5 + Math.sin(time * 0.6 + 3) * 0.4;
+        book2.rotation.y -= 0.004;
+
+        particles.forEach((p) => {
+          const d = p.userData;
+          p.position.y = d.baseY + Math.sin(time * 1.2 + d.offset) * d.amplitude;
+          p.position.x = d.baseX + Math.cos(time * 0.8 + d.offset) * 0.6;
+          p.position.z = d.baseZ + Math.sin(time * 0.5 + d.offset) * 0.4;
+          p.scale.setScalar(1 + Math.sin(time * 2 + d.offset) * 0.15);
+        });
+
+        ring1.rotation.x += 0.003;
+        ring1.rotation.y += 0.005;
+        ring1.rotation.z += 0.002;
+
+        ring2.rotation.x += 0.004;
+        ring2.rotation.y -= 0.003;
+        ring2.rotation.z += 0.002;
+
+        pointLight1.position.x = 5 + Math.sin(time * 0.5) * 3;
+        pointLight2.position.x = -6 + Math.cos(time * 0.7) * 2;
+        pointLight3.position.y = 8 + Math.sin(time * 0.4) * 3;
+
+        renderer.render(scene, camera);
+      }
+
+      animate();
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    })();
+  </script>
+</body>
+</html>
